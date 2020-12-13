@@ -13,3 +13,8 @@ export const login = (data) => {
 export const getSendSms = (data) => {
   return Get(`/app/v1_0/sms/codes/${data}`)
 }
+
+// 获取用户信息
+export const getUserInfo = () => {
+  return Get(`/app/v1_0/user`)
+}

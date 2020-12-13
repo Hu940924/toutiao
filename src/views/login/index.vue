@@ -1,7 +1,9 @@
 <template>
   <div class="login-container">
     <!-- 导航栏 -->
-    <van-nav-bar class="header-nav-bar" title="登录" />
+    <van-nav-bar class="header-nav-bar" title="登 录">
+      <van-icon slot="left" name="cross" @click="$router.back()" />
+    </van-nav-bar>
     <!-- 登录表单 -->
     <van-form @submit="onSubmit" ref="userRef">
       <!-- 表单区域 -->
@@ -12,7 +14,7 @@
         <i slot="left-icon" class="toutiao toutiao-yanzhengma"></i>
         <template #button>
           <span class="vertical-line">|</span>
-          <van-count-down class="show-count-down" v-if="isshoowCountDown" :time="1000 * 60" format="ss s" @finish="finish" />
+          <van-count-down class="show-count-down" v-if="isShoowCountDown" :time="1000 * 60" format="ss s" @finish="isShoowCountDown = false" />
           <van-button v-else native-type="button" class="send-sms-btn" round size="mini" type="default" @click="onsemdSms">获取验证码</van-button>
         </template>
       </van-field>
@@ -32,7 +34,7 @@ export default {
   data () {
     return {
       user: { // 登录表单数据
-        mobile: '13737353735',
+        mobile: '17090086870',
         code: '246810'
       },
       userRules: { // 表单验证规则对象
@@ -45,7 +47,7 @@ export default {
           { pattern: /^\d{6}$/, message: '验证码格式错误' }
         ]
       },
-      isshoowCountDown: false, // 控制显示验证倒计时
+      isShoowCountDown: false, // 控制显示验证倒计时
     }
   },
   methods: {
@@ -56,21 +58,16 @@ export default {
         forbidClick: true,
         duration: 0
       })
-      try {
-        const { data: res } = await login(this.user)
-        this.$toast.success({
-          message: '登陆成功！',
-          onOpened: () => {
-            this.$router.push('/my')
-          }
-        })
-      } catch (err) {
-        console.log(err);
-        if (err.response.status === 400) {
-          console.log('手机号或验证码错误！', err);
-          // 手机号或验证码错误！
+      const res = await login(this.user)
+      if (res.status === 201) {
+        this.$store.commit('setUser', res.data.data)
+        this.$toast.success('登陆成功！')
+        return this.$router.push('/my')
+      } else {
+        if (res.status === 400) {
+          this.$toast.fail('手机号或验证码错误！')
         } else {
-          console.log('登录失败，请稍后重试！', err);
+          this.$toast.fail('登录失败，请稍后重试！')
         }
       }
     },
@@ -83,25 +80,22 @@ export default {
         this.$toast.fail('验证失败，请稍重试！')
       }
       // 显示倒计时
-      this.isshoowCountDown = true
+      this.isShoowCountDown = true
       // 发起请求，获取验证码
-      try {
-        await getSendSms(this.user.mobile)
-        this.$toast('发送成功！')
-      } catch (err) {
+      this.$toast('发送成功！')
+      const res = await getSendSms(this.user.mobile)
+      if (res.status !== 200) {
         // 发送失败，关闭验证码
-        this.isshoowCountDown = false
+        this.isShoowCountDown = false
         if (err.response.status === 429) {
           this.$toast('发送太频繁，请稍后重试！')
         } else {
           this.$toast('验证失败，请稍后重试！')
         }
       }
+
+
     },
-    // 验证倒计时接收后执行的函数
-    finish () {
-      this.isshoowCountDown = false
-    }
   },
   computed: {},
 }
