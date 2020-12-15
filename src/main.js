@@ -13,6 +13,9 @@ import 'amfe-flexible'
 // 导入全局样式
 import './styles/index.less'
 
+// 加载 dayjs 初始配置
+import './utils/dayjs'
+
 Vue.config.productionTip = false
 
 new Vue({
